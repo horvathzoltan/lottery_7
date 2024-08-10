@@ -42,7 +42,10 @@ MainWindow::MainWindow(QWidget *parent)
     chartView->setParent(ui->tab_2);
     chartView->setGeometry(ui->tab_2->geometry());
 
-    auto a = Lottery::Refresh(-1, -1);
+    int year, week;
+    auto t_txt = Lottery::_settings.yearweek(&year, &week);
+
+    auto a = Lottery::Refresh(year, week);
 //    QDate date = QDate::fromString("2020-01-06", Qt::DateFormat::ISODate);
 //    int y = date.year();
 //    int w = date.weekNumber();
@@ -243,8 +246,21 @@ void MainWindow::setUi(const Lottery::RefreshR& m){
     auto last = Lottery::_data.last();
     QString txt = last.datetime.toString();
 
-   if(m.isExistInFile)
-        txt += com::helpers::StringHelper::NewLine+last.num.ToString();
+    if(m.isExistInFile){
+        txt += com::helpers::StringHelper::NewLine+"G:"+last.num.ToString();
+
+        if(Lottery::_data.count()>0){
+            for(int u=0;u<Lottery::_data.count()-1;u++){
+                auto a = Lottery::_data[u];
+                if(a.week==last.week && a.year==last.year){
+                    txt+=com::helpers::StringHelper::NewLine+"K:"+a.num.ToString();
+                    break;
+                }
+            }
+        }
+    }
+
+
 
     this->ui->label_data->setText(txt);
 
@@ -296,11 +312,16 @@ void MainWindow::setUi(const Lottery::RefreshR& m){
     bool frames_isok = !frames.isEmpty();
     // az utolsót kirakni
 
-    auto j=Lottery::_data.last().num;
+    Lottery::Numbers j = last.num;
+
+    //Pirit(j);
     //for(auto&j:Lottery::_data.last().num)
     //{
+    QSet<int> a;
        for(int i=0;i<Lottery::Settings::NUMBERS;i++){
            int n = j.number(i+1);
+
+           a.insert(n);
            qreal y = m.histogram[n-1];
            //qreal y = 0;
            qreal x = n-.5;
@@ -317,11 +338,40 @@ void MainWindow::setUi(const Lottery::RefreshR& m){
                x = n-.5;
                scatterseries2->append(QPointF(x, y));
            }
-
-
         }
     //}
 
+        if(Lottery::_data.count()>0){
+            for(int u=0;u<Lottery::_data.count()-1;u++){
+                auto d = Lottery::_data[u];
+                if(d.year==last.year && d.week==last.week){
+                    j=d.num;
+
+                    for(int i=0;i<Lottery::Settings::NUMBERS;i++){
+                        int n = j.number(i+1);
+                        if(a.contains(n)) continue;
+                        a.insert(n);
+                        qreal y = m.histogram[n-1];
+                        //qreal y = 0;
+                        qreal x = n-.5;
+                        scatterseries->append(QPointF(x, y));
+
+
+                        if(frames_isok && m.isExistInFile)
+                            frames[n-1]->setPalette(pal);
+
+
+                        if(scatterseries2){
+                            n = Lottery::_next.num.number(i+1);
+                            y = m.histogram[n-1];
+                            x = n-.5;
+                            scatterseries2->append(QPointF(x, y));
+                        }
+                    }
+                    break;
+                }
+            }
+        }
 
     QLineSeries *lineseries[Lottery::Settings::NUMBERS];
     for(int n=0;n<Lottery::Settings::NUMBERS;n++)
@@ -477,6 +527,27 @@ void MainWindow::setUi(const Lottery::RefreshR& m){
 
 }
 
+void MainWindow::Pirit(Lottery::Numbers j){
+    // for(int i=0;i<Lottery::Settings::NUMBERS;i++){
+    //     int n = j.number(i+1);
+    //     qreal y = m.histogram[n-1];
+    //     //qreal y = 0;
+    //     qreal x = n-.5;
+    //     scatterseries->append(QPointF(x, y));
+
+
+    //     if(frames_isok && m.isExistInFile)
+    //         frames[n-1]->setPalette(pal);
+
+
+    //     if(scatterseries2){
+    //         n = Lottery::_next.num.number(i+1);
+    //         y = m.histogram[n-1];
+    //         x = n-.5;
+    //         scatterseries2->append(QPointF(x, y));
+    //     }
+    // }
+}
 //TODO egy kombináció hány számja egyezik meg az előzővel - legfeljebb mennyi egyezhet meg? 1.
 
 // generate
@@ -797,11 +868,6 @@ void MainWindow::on_week_valueChanged(int arg1)
     Lottery::_settings.yearweek(&y,&w);
     auto a = Lottery::Refresh(y, w);
     setUi(a);
-    //auto l = Lottery::_data.last();
-    //QDate date = QDate::fromString(QString::number(l.year)+"-01-01", Qt::DateFormat::ISODate).addDays(l.week*7);
-
-    //Lottery::_settings.setDate(date);
-
 
     RefreshByWeek();
 

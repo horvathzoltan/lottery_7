@@ -88,5 +88,6 @@ private:
     Ui::MainWindow *ui;
     void RefreshByWeek();
     void closeEvent(QCloseEvent *event) override;
+    void Pirit(Lottery::Numbers j);
 };
 #endif // MAINWINDOW_H
