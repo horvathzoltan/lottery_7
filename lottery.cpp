@@ -155,6 +155,8 @@ bool Lottery::FromFile(const QString& txt, int year, int week, bool* isExist){
 
     for(int i=0;i<_settings.NUMBERS;i++){_next.num.setNumber(i+1, 0);}
 
+    _next = {};
+
     // elől van a legfrissebb
     //auto drop = lines.count()-maxline;
     //int linecount = 0;
