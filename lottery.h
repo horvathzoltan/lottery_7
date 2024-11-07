@@ -300,6 +300,8 @@ public:
         int min_y;
         int max_y;
         bool isExistInFile; // ha az adott hét benne volt a fájlban
+
+        QVector<qreal> lastOccurences;
     };
 
     static RefreshR Refresh(int year, int week);
@@ -324,6 +326,7 @@ public:
     static void Save(const QVector<Data>&);
 
     static QVector<qreal> Histogram(const QVector<Data>& d, int x);
+    static QVector<qreal> LastOccurences(const QVector<Data>&d);
 
     static QVector<QVector<int>> SelectByCombination(const QVector<Occurence>& p, int k);
     static QVector<QVector<int>> Combination(int N, int K);

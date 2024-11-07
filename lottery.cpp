@@ -288,6 +288,9 @@ Lottery::RefreshR Lottery::Refresh(int year, int week){
     r.min_y = *std::min_element(r.histogram.begin(), r.histogram.end());
     r.max_y = *std::max_element(r.histogram.begin(), r.histogram.end());
 
+    r.lastOccurences = Lottery::LastOccurences(_data);
+
+
     return r;
 }
 
@@ -600,6 +603,29 @@ QVector<qreal> Lottery::Histogram(const QVector<Data>&d, int m)
     }
 
     return r;
+}
+
+QVector<qreal> Lottery::LastOccurences(const QVector<Data>& data){
+    int L = 90;
+
+    QVector<qreal> a(L);for(auto& i:a) i=0;
+
+    int dataLenth = data.count();
+    for(int i=0;i<dataLenth;i++)
+    {
+        Data d = data[i];
+
+        for(int k=0;k<L;k++){
+            int szam = k+1;
+            if(d.num.contains(szam)){
+                a[k]=0;
+            } else{
+                a[k]++;
+            }
+        }
+    }
+
+    return a;
 }
 
 
